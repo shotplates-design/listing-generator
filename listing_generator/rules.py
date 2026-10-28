@@ -22,6 +22,8 @@ class PlatformRules:
             description = PlatformRules.strip_hashtags(description)
         if not title.strip():
             title = "Clothing"
+        if not description.strip():
+            description = "Clothing"
         title = TitleBuilder.fit([title], listing.title_limit)
         description = DescriptionBuilder._cap(description, listing.description_limit)
         if listing.platform == "facebook_marketplace":
@@ -29,6 +31,8 @@ class PlatformRules:
             description = description.replace("#", "")
             if not title.strip():
                 title = "Clothing"[: listing.title_limit]
+            if not description.strip():
+                description = "Clothing"[: listing.description_limit]
         return replace(listing, title=title, description=description)
 
     @staticmethod

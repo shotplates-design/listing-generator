@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from listing_generator.descriptions import DescriptionBuilder
+from listing_generator.export import ListingExport
 from listing_generator.generator import ListingGenerator
 from listing_generator.models import ClothingItem
 from listing_generator.polish import ListingPolish
@@ -106,6 +107,36 @@ def test_polish_strips_facebook_hashtags_and_keeps_title_limits(monkeypatch, hoo
     assert 0 < len(facebook.title) <= facebook.title_limit
     assert all(len(row.title) <= row.title_limit for row in polished)
     assert "#" in depop.description
+
+
+def test_hashtag_only_facebook_description_still_exports(monkeypatch, hoodie):
+    monkeypatch.delenv("LISTING_LLM_POLISH", raising=False)
+    drafts = ListingGenerator.generate(hoodie)
+    monkeypatch.setenv("LISTING_LLM_POLISH", "1")
+
+    def completer(_prompt):
+        payload = {}
+        for row in drafts:
+            if row.platform == "facebook_marketplace":
+                payload[row.platform] = {"title": row.title, "description": "#forsale #hoodie #vintage"}
+            else:
+                payload[row.platform] = {"title": row.title, "description": row.description}
+        return json_of(payload)
+
+    polished = ListingPolish.apply(tuple(drafts), completer=completer)
+    facebook = next(row for row in polished if row.platform == "facebook_marketplace")
+    assert facebook.description.strip()
+    assert "#" not in facebook.description
+    document = ListingExport.build(
+        hoodie,
+        polished,
+        item_id="fb-hashtags",
+        created_at="2026-10-28T15:00:00Z",
+    )
+    ListingExport.validate(document)
+    exported = document["listings"]["facebook_marketplace"]["description"]
+    assert exported.strip()
+    assert "#" not in exported
 
 
 def json_of(payload) -> str:
