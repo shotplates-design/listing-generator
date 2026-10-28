@@ -87,6 +87,24 @@ def test_recorded_reading_matches_the_hoodie_and_keeps_ruler_measurements():
     assert "#antisocialsocialclub" in depop["tags"] or any("social" in tag for tag in depop["tags"])
 
 
+def _assert_visible_scale(raw: object, photo_count: int) -> None:
+    """Uses the parser's own index and yes/no normalization."""
+    scale = raw.get("scale") if isinstance(raw, dict) else None
+    assert isinstance(scale, dict)
+    photo_index = ExtractionParser._photo_index(scale.get("photo_index"))
+    assert photo_index is not None
+    assert ExtractionParser._index_in_photos(photo_index, photo_count)
+    assert ExtractionParser._is_yes(scale.get("visible"))
+
+
+def test_live_scale_check_accepts_the_photo_indexes_the_parser_accepts():
+    for index in (5, "5", " 5 ", 5.0):
+        _assert_visible_scale({"scale": {"photo_index": index, "visible": True}}, 6)
+    for index in (True, -1, 6, "six", 5.5):
+        with pytest.raises(AssertionError):
+            _assert_visible_scale({"scale": {"photo_index": index, "visible": True}}, 6)
+
+
 @pytest.mark.skipif(not os.environ.get("GEMINI_API_KEY"), reason="GEMINI_API_KEY is not set")
 def test_live_gemini_once_on_the_hoodie_photos():
     """One real call when a key is present. Safety checks only; the recorded JSON is the fixture."""
@@ -106,13 +124,7 @@ def test_live_gemini_once_on_the_hoodie_photos():
     )
     if result.item.measurements:
         raw = payload.get("measurements") if isinstance(payload, dict) else {}
-        scale = raw.get("scale") if isinstance(raw, dict) else None
-        assert isinstance(scale, dict)
-        photo_index = scale.get("photo_index")
-        assert isinstance(photo_index, int) and not isinstance(photo_index, bool)
-        assert 0 <= photo_index < len(prepared)
-        visible = scale.get("visible")
-        assert visible is True or (isinstance(visible, str) and visible.strip().lower() in {"yes", "true"})
+        _assert_visible_scale(raw, len(prepared))
     joined = " ".join(
         [
             result.item.brand,
