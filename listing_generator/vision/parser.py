@@ -8,7 +8,7 @@ from listing_generator.vision.errors import VisionError
 
 
 class ExtractionParser:
-    """Keeps high and medium readings. Measurements stay blank unless a ruler or tape is marked visible in one photo."""
+    """Keeps high and medium readings. Measurements stay blank unless a ruler or tape is marked visible in one of the photos."""
 
     _FIELDS = (
         "brand",
@@ -37,7 +37,7 @@ class ExtractionParser:
     _CONFIRM = {"condition", "flaws"}
 
     @staticmethod
-    def parse(payload: dict, *, provider: str, model: str) -> ExtractionResult:
+    def parse(payload: dict, *, provider: str, model: str, photo_count: int) -> ExtractionResult:
         if not isinstance(payload, dict):
             raise VisionError("The model response was not a JSON object. Nothing was guessed.")
         values: dict[str, str] = {}
@@ -53,7 +53,8 @@ class ExtractionParser:
             if rejected is not None:
                 discarded.append(rejected)
         measurements, measurement_level, measurement_flag, measurement_rejected = ExtractionParser._measurements(
-            payload.get("measurements")
+            payload.get("measurements"),
+            photo_count,
         )
         confidence["measurements"] = measurement_level
         if measurement_flag:
@@ -177,7 +178,7 @@ class ExtractionParser:
         return value, "high", "", None
 
     @staticmethod
-    def _measurements(raw: object) -> tuple[dict[str, str], str, str, DiscardedReading | None]:
+    def _measurements(raw: object, photo_count: int) -> tuple[dict[str, str], str, str, DiscardedReading | None]:
         blank_flag = "Left blank. Measurements cannot be read from photos."
         shown = ExtractionParser._show(raw)
         evidence = ExtractionParser._evidence(raw)
@@ -191,7 +192,7 @@ class ExtractionParser:
                 text = Text.squash(item)
                 if text and not Text.is_placeholder(text):
                     values[str(key)] = text
-        ruler = ExtractionParser._mentions_ruler(raw)
+        ruler = ExtractionParser._mentions_ruler(raw, photo_count)
         if values and ruler and confidence in {"high", "medium"}:
             if isinstance(raw, dict) and raw.get("approximate") is True:
                 return (
@@ -214,19 +215,26 @@ class ExtractionParser:
         return {}, "none", blank_flag, None
 
     @staticmethod
-    def _mentions_ruler(raw: object) -> bool:
-        """True only when scale names one photo and says a ruler or tape is visible there.
+    def _mentions_ruler(raw: object, photo_count: int) -> bool:
+        """True only when scale names one uploaded photo and says a ruler or tape is visible there.
 
-        A sentence that contains the word ruler is not evidence.
+        A sentence that contains the word ruler is not evidence. photo_index must fall in 0..photo_count-1.
         """
         if not isinstance(raw, dict):
             return False
         scale = raw.get("scale")
         if not isinstance(scale, dict):
             return False
-        if ExtractionParser._photo_index(scale.get("photo_index")) is None:
+        index = ExtractionParser._photo_index(scale.get("photo_index"))
+        if index is None or not ExtractionParser._index_in_photos(index, photo_count):
             return False
         return ExtractionParser._is_yes(scale.get("visible"))
+
+    @staticmethod
+    def _index_in_photos(index: int, photo_count: int) -> bool:
+        if isinstance(photo_count, bool) or not isinstance(photo_count, int) or photo_count < 1:
+            return False
+        return index < photo_count
 
     @staticmethod
     def _photo_index(value: object) -> int | None:

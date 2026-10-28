@@ -63,7 +63,12 @@ class CommandLine:
             photos.append(PhotoRef(path_or_url=str(path), role=PhotoRoles.normalize(role), order=index))
         prepared = ImagePrep.prepare_many(files)
         provider = VisionProviders.from_env()
-        result = ExtractionParser.parse(provider.analyze(prepared), provider=provider.name, model=provider.model)
+        result = ExtractionParser.parse(
+            provider.analyze(prepared),
+            provider=provider.name,
+            model=provider.model,
+            photo_count=len(prepared),
+        )
         document = {
             "provider": result.provider,
             "model": result.model,

@@ -17,7 +17,7 @@ from listing_generator.vision.sample import SampleReading
 
 
 def test_parser_blanks_unsure_fields_and_every_measurement():
-    result = ExtractionParser.parse(SampleReading.payload(), provider="mock", model="mock-fixture")
+    result = ExtractionParser.parse(SampleReading.payload(), provider="mock", model="mock-fixture", photo_count=4)
     item = result.item
     assert item.brand == "Nike"
     assert item.item_type == "hoodie"
@@ -46,7 +46,7 @@ def test_low_confidence_and_placeholder_and_bare_string_are_dropped():
         "color": {"value": "unknown", "confidence": "high", "evidence": ""},
         "item_type": {"value": "coat", "confidence": "low", "evidence": "maybe"},
     }
-    result = ExtractionParser.parse(payload, provider="mock", model="mock")
+    result = ExtractionParser.parse(payload, provider="mock", model="mock", photo_count=1)
     assert result.item.brand == ""
     assert result.item.color == ""
     assert result.item.item_type == ""
@@ -63,7 +63,7 @@ def test_text_only_ruler_claim_drops_measurements():
             "evidence": "a ruler, tape measure, measuring tape, and yardstick are visible; photo_index 1 visible yes",
         }
     }
-    result = ExtractionParser.parse(payload, provider="mock", model="mock")
+    result = ExtractionParser.parse(payload, provider="mock", model="mock", photo_count=6)
     assert result.item.measurements == {}
     assert result.item.field_confidence["measurements"] == "none"
     flag = result.item.field_flags["measurements"].lower()
@@ -90,7 +90,7 @@ def test_structured_visible_ruler_keeps_measurements():
                 "scale": scale,
             }
         }
-        result = ExtractionParser.parse(payload, provider="mock", model="mock")
+        result = ExtractionParser.parse(payload, provider="mock", model="mock", photo_count=3)
         assert result.item.measurements == {"pit_to_pit": "23 in", "length": "27 in"}
         assert result.item.field_confidence["measurements"] == "high"
         assert "measurements" not in result.item.field_flags
@@ -98,6 +98,41 @@ def test_structured_visible_ruler_keeps_measurements():
         blob = " ".join(DescriptionBuilder.build(result.item, platform) for platform in Platforms.ORDER)
         assert "Pit to pit: 23 in" in blob
         assert "Length: 27 in" in blob
+
+
+def test_photo_index_outside_the_photo_count_is_dropped():
+    def payload(index: object) -> dict:
+        return {
+            "measurements": {
+                "value": {"pit_to_pit": "23 in", "length": "27 in"},
+                "confidence": "high",
+                "evidence": "marks across the chest and the hem",
+                "scale": {"photo_index": index, "visible": True},
+            }
+        }
+
+    for index in (6, 99, "6"):
+        result = ExtractionParser.parse(payload(index), provider="mock", model="mock", photo_count=6)
+        assert result.item.measurements == {}
+        assert result.item.field_confidence["measurements"] == "none"
+        flag = result.item.field_flags["measurements"].lower()
+        assert "cannot be read from photos" in flag
+        assert "ruler" in flag
+        assert "photo" in flag
+        dropped = next(row for row in result.discarded if row.field == "measurements")
+        assert "23 in" in dropped.value
+        assert "27 in" in dropped.value
+        assert "photo" in dropped.reason.lower()
+
+    empty = ExtractionParser.parse(payload(0), provider="mock", model="mock", photo_count=0)
+    assert empty.item.measurements == {}
+    assert "cannot be read from photos" in empty.item.field_flags["measurements"].lower()
+    assert any(row.field == "measurements" for row in empty.discarded)
+
+    kept = ExtractionParser.parse(payload(5), provider="mock", model="mock", photo_count=6)
+    assert kept.item.measurements == {"pit_to_pit": "23 in", "length": "27 in"}
+    assert "measurements" not in kept.item.field_flags
+    assert not any(row.field == "measurements" for row in kept.discarded)
 
 
 def test_measurements_without_a_ruler_are_dropped():
@@ -143,7 +178,7 @@ def test_measurements_without_a_ruler_are_dropped():
         },
     ]
     for payload in payloads:
-        result = ExtractionParser.parse(payload, provider="mock", model="mock")
+        result = ExtractionParser.parse(payload, provider="mock", model="mock", photo_count=6)
         assert result.item.measurements == {}
         assert result.item.field_confidence["measurements"] == "none"
         flag = result.item.field_flags["measurements"].lower()
@@ -163,7 +198,7 @@ def test_approximate_flag_without_a_ruler_does_not_keep_measurements():
             "evidence": "estimated from how the hoodie looks on the floor",
         }
     }
-    result = ExtractionParser.parse(payload, provider="mock", model="mock")
+    result = ExtractionParser.parse(payload, provider="mock", model="mock", photo_count=6)
     assert result.item.measurements == {}
     assert result.item.field_confidence["measurements"] == "none"
     dropped = next(row for row in result.discarded if row.field == "measurements")
@@ -174,7 +209,7 @@ def test_approximate_flag_without_a_ruler_does_not_keep_measurements():
 
 def test_mock_provider_is_what_tests_call():
     provider = MockVisionProvider()
-    result = ExtractionParser.parse(provider.analyze([]), provider=provider.name, model=provider.model)
+    result = ExtractionParser.parse(provider.analyze([]), provider=provider.name, model=provider.model, photo_count=4)
     listings = ListingGenerator.generate(result.item)
     assert len(listings) == 6
     assert all("22" not in listing.description for listing in listings)

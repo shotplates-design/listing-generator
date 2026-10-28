@@ -33,6 +33,7 @@ def test_recorded_reading_matches_the_hoodie_and_keeps_ruler_measurements():
         HoodieFixture.vision_response(),
         provider="recorded",
         model="assc-hoodie-v1",
+        photo_count=len(HoodieFixture.manifest()),
     )
     item = result.item
     assert item.brand == "Anti Social Social Club"
@@ -97,11 +98,21 @@ def test_live_gemini_once_on_the_hoodie_photos():
         payload = provider.analyze(prepared)
     except VisionError as exc:
         pytest.fail(f"Live Gemini call failed: {exc}")
-    result = ExtractionParser.parse(payload, provider=provider.name, model=provider.model)
+    result = ExtractionParser.parse(
+        payload,
+        provider=provider.name,
+        model=provider.model,
+        photo_count=len(prepared),
+    )
     if result.item.measurements:
         raw = payload.get("measurements") if isinstance(payload, dict) else {}
-        evidence = str((raw or {}).get("evidence") or "").lower() if isinstance(raw, dict) else ""
-        assert "ruler" in evidence or "tape" in evidence or (isinstance(raw, dict) and raw.get("approximate") is True)
+        scale = raw.get("scale") if isinstance(raw, dict) else None
+        assert isinstance(scale, dict)
+        photo_index = scale.get("photo_index")
+        assert isinstance(photo_index, int) and not isinstance(photo_index, bool)
+        assert 0 <= photo_index < len(prepared)
+        visible = scale.get("visible")
+        assert visible is True or (isinstance(visible, str) and visible.strip().lower() in {"yes", "true"})
     joined = " ".join(
         [
             result.item.brand,
