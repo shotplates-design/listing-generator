@@ -1,9 +1,10 @@
-"""Selects the vision provider from the environment. The default is Gemini."""
+"""Selects the vision provider. The Gemini key comes from Streamlit secrets, then the environment."""
 
 from __future__ import annotations
 
 import os
 
+from listing_generator.gate import AppSecrets
 from listing_generator.vision.base import VisionProvider
 from listing_generator.vision.errors import VisionError
 from listing_generator.vision.gemini import GeminiVisionProvider
@@ -25,7 +26,7 @@ class VisionProviders:
             )
         if name == "gemini":
             return GeminiVisionProvider(
-                api_key=os.environ.get("GEMINI_API_KEY", ""),
+                api_key=AppSecrets.read("GEMINI_API_KEY"),
                 model=os.environ.get("VISION_MODEL", GeminiVisionProvider.DEFAULT_MODEL),
                 base_url=os.environ.get("GEMINI_API_BASE", GeminiVisionProvider.DEFAULT_BASE),
             )
@@ -54,7 +55,7 @@ class VisionProviders:
         return {
             "provider": "gemini",
             "model": os.environ.get("VISION_MODEL", GeminiVisionProvider.DEFAULT_MODEL),
-            "key_configured": bool(os.environ.get("GEMINI_API_KEY", "").strip()),
+            "key_configured": bool(AppSecrets.read("GEMINI_API_KEY")),
             "polish": polish,
             "note": "Google AI Studio free tier. The key stays on this machine.",
         }

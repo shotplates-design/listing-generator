@@ -16,10 +16,21 @@ pip install -r requirements.txt
 
 Create a free Gemini key at [Google AI Studio](https://aistudio.google.com/apikey). No credit card. Do not link a billing account if you want to stay on the free tier.
 
+The Streamlit app stays blank until `APP_PASSWORD` is set and entered. Copy the example secrets file, or export both variables:
+
 ```bash
+cp .streamlit/secrets.toml.example .streamlit/secrets.toml
+# edit APP_PASSWORD and GEMINI_API_KEY in that file
+streamlit run app.py
+```
+
+```bash
+export APP_PASSWORD='choose-a-long-password'
 export GEMINI_API_KEY=your-key
 streamlit run app.py
 ```
+
+Secrets in `.streamlit/secrets.toml` win. Environment variables are the fallback. `.streamlit/secrets.toml` is gitignored.
 
 The command line does the same work:
 
@@ -33,6 +44,7 @@ python -m listing_generator generate review.json --format json --output listing.
 Run without a key by pointing at the offline sample provider. It does not look at the pixels:
 
 ```bash
+export APP_PASSWORD='choose-a-long-password'
 export VISION_PROVIDER=mock
 streamlit run app.py
 ```
@@ -42,6 +54,24 @@ Tests do not need a key:
 ```bash
 pytest
 ```
+
+## Deploy on Streamlit Community Cloud
+
+The app entry point is `app.py`. Community Cloud installs `requirements.txt` from the repo.
+
+1. Push the repo to GitHub.
+2. Sign in at [share.streamlit.io](https://share.streamlit.io) and create an app from that repo. Set the main file to `app.py` and the branch to `main`.
+3. In **Advanced settings**, paste secrets in the Secrets field. You can paste [`.streamlit/secrets.toml.example`](.streamlit/secrets.toml.example) and replace the placeholders:
+
+```toml
+APP_PASSWORD = "choose-a-long-password"
+GEMINI_API_KEY = "your-google-ai-studio-key"
+```
+
+4. Save and reboot the app. The public URL shows a password box and nothing else until that password is correct. If `APP_PASSWORD` is missing, the app stops with an error instead of opening the form.
+5. Keep `.streamlit/secrets.toml` off GitHub. Community Cloud reads the Secrets field, not the gitignored file. Update secrets later from the app's settings in your workspace.
+
+This is one shared password, not a user account. `GEMINI_API_KEY` is read from Streamlit secrets first, then from the environment.
 
 ## Free tier
 
@@ -103,6 +133,7 @@ Every JSON export is validated against that schema before it is written. `schema
 
 ```
 app.py                          Streamlit entry
+.streamlit/secrets.toml.example Placeholder password and Gemini key
 listing_generator/              Drafting, fees, vision, export
 config/fees.yaml                The only fee rates
 schema/listing.v1.schema.json   Export contract

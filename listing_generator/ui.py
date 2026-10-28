@@ -8,6 +8,7 @@ import json
 import streamlit as st
 
 from listing_generator.export import ExportError, ListingExport
+from listing_generator.gate import AppGate
 from listing_generator.generator import ListingGenerator
 from listing_generator.models import ClothingItem, FacebookFulfillment, Fields, PhotoRef, PhotoRoles, Platforms
 from listing_generator.money import Money, MoneyError
@@ -25,6 +26,7 @@ class ListingApp:
     @staticmethod
     def render() -> None:
         st.set_page_config(page_title="Listing Generator", page_icon="✂", layout="wide")
+        AppGate.block_until_unlocked()
         ListingApp._style()
         ListingApp._apply_pending()
         ListingApp._header()
