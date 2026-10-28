@@ -75,7 +75,7 @@ This is one shared password, not a user account. `GEMINI_API_KEY` is read from S
 
 ## Free tier
 
-The default model is `gemini-2.5-flash` on the Gemini Developer API.
+The default model is `gemini-3.5-flash` on the Gemini Developer API.
 
 Checked against [Gemini API pricing](https://ai.google.dev/gemini-api/docs/pricing) on 28 October 2026:
 
