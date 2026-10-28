@@ -76,7 +76,7 @@ def test_schema_rejects_a_document_missing_facebook(hoodie):
 
 
 def test_sample_reading_round_trip_keeps_measurements_out(hoodie):
-    result = ExtractionParser.parse(SampleReading.payload(), provider="mock", model="mock-fixture")
+    result = ExtractionParser.parse(SampleReading.payload(), provider="mock", model="mock-fixture", photo_count=4)
     document = ListingExport.build(
         result.item,
         ListingGenerator.generate(result.item),

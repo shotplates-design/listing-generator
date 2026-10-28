@@ -134,7 +134,12 @@ class ListingApp:
             files = [(upload.name, upload.getvalue()) for upload in uploads]
             prepared = ImagePrep.prepare_many(files)
             provider = VisionProviders.from_env()
-            result = ExtractionParser.parse(provider.analyze(prepared), provider=provider.name, model=provider.model)
+            result = ExtractionParser.parse(
+                provider.analyze(prepared),
+                provider=provider.name,
+                model=provider.model,
+                photo_count=len(prepared),
+            )
             photos = [
                 {
                     "path_or_url": upload.name,
@@ -154,7 +159,12 @@ class ListingApp:
             files = SamplePhotos.build()
             prepared = ImagePrep.prepare_many(files)
             provider = VisionProviders.from_env()
-            result = ExtractionParser.parse(provider.analyze(prepared), provider=provider.name, model=provider.model)
+            result = ExtractionParser.parse(
+                provider.analyze(prepared),
+                provider=provider.name,
+                model=provider.model,
+                photo_count=len(prepared),
+            )
         except VisionError as exc:
             st.error(str(exc))
             return
@@ -179,6 +189,7 @@ class ListingApp:
             HoodieFixture.vision_response(),
             provider="recorded",
             model="assc-hoodie-v1",
+            photo_count=len(files),
         )
         photos = [
             {"path_or_url": name, "role": role, "order": index}
