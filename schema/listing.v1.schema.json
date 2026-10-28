@@ -1,0 +1,281 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "listing.v1.schema.json",
+  "title": "Listing Generator export v1",
+  "description": "Versioned handoff from listing-generator to a crosslisting app. Import this document as-is. Money amounts are decimal strings with two fraction digits. Empty strings and null amounts mean unknown, not a guess.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "item_id",
+    "created_at",
+    "photos",
+    "attributes",
+    "field_confidence",
+    "field_flags",
+    "discarded",
+    "review_notes",
+    "pricing_inputs",
+    "fee_schedule_as_of",
+    "listings"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "item_id": {"type": "string", "minLength": 1},
+    "created_at": {"type": "string", "format": "date-time"},
+    "fee_schedule_as_of": {"type": "string", "minLength": 10},
+    "photos": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/photo"}
+    },
+    "attributes": {"$ref": "#/$defs/attributes"},
+    "field_confidence": {"$ref": "#/$defs/fieldConfidence"},
+    "field_flags": {"$ref": "#/$defs/fieldFlags"},
+    "discarded": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/discarded"}
+    },
+    "review_notes": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1}
+    },
+    "pricing_inputs": {"$ref": "#/$defs/pricingInputs"},
+    "listings": {"$ref": "#/$defs/listings"}
+  },
+  "$defs": {
+    "money": {
+      "type": "string",
+      "pattern": "^-?(?:0|[1-9][0-9]*)\\.[0-9]{2}$"
+    },
+    "nonNegativeMoney": {
+      "type": "string",
+      "pattern": "^(?:0|[1-9][0-9]*)\\.[0-9]{2}$"
+    },
+    "nullableMoney": {
+      "anyOf": [{"type": "null"}, {"$ref": "#/$defs/money"}]
+    },
+    "nullableNonNegativeMoney": {
+      "anyOf": [{"type": "null"}, {"$ref": "#/$defs/nonNegativeMoney"}]
+    },
+    "attributeName": {
+      "enum": [
+        "brand",
+        "category",
+        "size_tag",
+        "measurements",
+        "color",
+        "material",
+        "condition",
+        "flaws",
+        "style",
+        "department"
+      ]
+    },
+    "confidence": {
+      "enum": ["high", "medium", "low", "none", "user"]
+    },
+    "photo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path_or_url", "role", "order"],
+      "properties": {
+        "path_or_url": {"type": "string", "minLength": 1},
+        "role": {"enum": ["front", "back", "tag", "flaw", "detail"]},
+        "order": {"type": "integer", "minimum": 0}
+      }
+    },
+    "attributes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "brand",
+        "category",
+        "size_tag",
+        "measurements",
+        "color",
+        "material",
+        "condition",
+        "flaws",
+        "style",
+        "department"
+      ],
+      "properties": {
+        "brand": {"type": "string"},
+        "category": {"type": "string"},
+        "size_tag": {"type": "string"},
+        "measurements": {
+          "type": "object",
+          "additionalProperties": {"type": "string", "minLength": 1}
+        },
+        "color": {"type": "string"},
+        "material": {"type": "string"},
+        "condition": {
+          "enum": ["", "new_with_tags", "new_without_tags", "excellent", "good", "fair", "poor"]
+        },
+        "flaws": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1}
+        },
+        "style": {"type": "string"},
+        "department": {
+          "enum": ["", "mens", "womens", "unisex", "boys", "girls", "kids"]
+        }
+      }
+    },
+    "fieldConfidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "brand",
+        "category",
+        "size_tag",
+        "measurements",
+        "color",
+        "material",
+        "condition",
+        "flaws",
+        "style",
+        "department"
+      ],
+      "properties": {
+        "brand": {"$ref": "#/$defs/confidence"},
+        "category": {"$ref": "#/$defs/confidence"},
+        "size_tag": {"$ref": "#/$defs/confidence"},
+        "measurements": {"$ref": "#/$defs/confidence"},
+        "color": {"$ref": "#/$defs/confidence"},
+        "material": {"$ref": "#/$defs/confidence"},
+        "condition": {"$ref": "#/$defs/confidence"},
+        "flaws": {"$ref": "#/$defs/confidence"},
+        "style": {"$ref": "#/$defs/confidence"},
+        "department": {"$ref": "#/$defs/confidence"}
+      }
+    },
+    "fieldFlags": {
+      "type": "object",
+      "propertyNames": {"$ref": "#/$defs/attributeName"},
+      "additionalProperties": {"type": "string", "minLength": 1}
+    },
+    "discarded": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["field", "value", "confidence", "evidence", "reason"],
+      "properties": {
+        "field": {"$ref": "#/$defs/attributeName"},
+        "value": {"type": "string"},
+        "confidence": {"type": "string"},
+        "evidence": {"type": "string"},
+        "reason": {"type": "string", "minLength": 1}
+      }
+    },
+    "pricingInputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cost_basis", "target_price", "buyer_paid_shipping", "sales_tax", "facebook_fulfillment"],
+      "properties": {
+        "cost_basis": {"$ref": "#/$defs/nullableNonNegativeMoney"},
+        "target_price": {"$ref": "#/$defs/nullableNonNegativeMoney"},
+        "buyer_paid_shipping": {"$ref": "#/$defs/nullableNonNegativeMoney"},
+        "sales_tax": {"$ref": "#/$defs/nullableNonNegativeMoney"},
+        "facebook_fulfillment": {"enum": ["local_pickup", "shipped"]}
+      }
+    },
+    "feeLine": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "amount"],
+      "properties": {
+        "label": {"type": "string", "minLength": 1},
+        "amount": {"$ref": "#/$defs/nonNegativeMoney"}
+      }
+    },
+    "fees": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["currency", "fee_base", "total", "formula", "lines", "notes"],
+      "properties": {
+        "currency": {"const": "USD"},
+        "fee_base": {"$ref": "#/$defs/nonNegativeMoney"},
+        "total": {"$ref": "#/$defs/nonNegativeMoney"},
+        "formula": {"type": "string", "minLength": 1},
+        "lines": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/feeLine"}
+        },
+        "notes": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "listing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "display_name",
+        "title",
+        "title_limit",
+        "description",
+        "description_limit",
+        "tags",
+        "tags_label",
+        "category_suggestion",
+        "category_note",
+        "item_specifics",
+        "missing_specifics",
+        "price",
+        "price_rationale",
+        "equalized_price",
+        "equalized_note",
+        "fees",
+        "net",
+        "checklist",
+        "polish"
+      ],
+      "properties": {
+        "display_name": {"type": "string", "minLength": 1},
+        "title": {"type": "string", "minLength": 1},
+        "title_limit": {"type": "integer", "minimum": 1},
+        "description": {"type": "string", "minLength": 1},
+        "description_limit": {"type": "integer", "minimum": 1},
+        "tags": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "tags_label": {"type": "string", "minLength": 1},
+        "category_suggestion": {"type": "string", "minLength": 1},
+        "category_note": {"type": "string"},
+        "item_specifics": {
+          "type": "object",
+          "additionalProperties": {"type": "string"}
+        },
+        "missing_specifics": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1}
+        },
+        "price": {"$ref": "#/$defs/nullableNonNegativeMoney"},
+        "price_rationale": {"type": "string", "minLength": 1},
+        "equalized_price": {"$ref": "#/$defs/nullableNonNegativeMoney"},
+        "equalized_note": {"type": "string"},
+        "fees": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/fees"}]},
+        "net": {"$ref": "#/$defs/nullableMoney"},
+        "checklist": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "polish": {"enum": ["off", "applied", "fallback"]}
+      }
+    },
+    "listings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ebay", "poshmark", "depop", "mercari", "whatnot", "facebook_marketplace"],
+      "properties": {
+        "ebay": {"$ref": "#/$defs/listing"},
+        "poshmark": {"$ref": "#/$defs/listing"},
+        "depop": {"$ref": "#/$defs/listing"},
+        "mercari": {"$ref": "#/$defs/listing"},
+        "whatnot": {"$ref": "#/$defs/listing"},
+        "facebook_marketplace": {"$ref": "#/$defs/listing"}
+      }
+    }
+  }
+}
