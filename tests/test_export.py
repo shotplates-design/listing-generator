@@ -53,6 +53,21 @@ def test_shipped_facebook_fee_is_in_the_export(hoodie):
     assert document["pricing_inputs"]["facebook_fulfillment"] == "shipped"
 
 
+def test_schema_rejects_empty_discarded_confidence(hoodie):
+    document = _document(hoodie)
+    document["discarded"] = [
+        {
+            "field": "origin",
+            "value": "Guess",
+            "confidence": "",
+            "evidence": "",
+            "reason": "No confidence was provided.",
+        }
+    ]
+    with pytest.raises(ExportError):
+        ListingExport.validate(document)
+
+
 def test_schema_rejects_a_document_missing_facebook(hoodie):
     document = _document(hoodie)
     del document["listings"]["facebook_marketplace"]

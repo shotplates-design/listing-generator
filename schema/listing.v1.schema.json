@@ -68,7 +68,8 @@
         "condition",
         "flaws",
         "style",
-        "department"
+        "department",
+        "origin"
       ]
     },
     "confidence": {
@@ -94,6 +95,7 @@
         "measurements",
         "color",
         "material",
+        "origin",
         "condition",
         "flaws",
         "style",
@@ -109,6 +111,7 @@
         },
         "color": {"type": "string"},
         "material": {"type": "string"},
+        "origin": {"type": "string"},
         "condition": {
           "enum": ["", "new_with_tags", "new_without_tags", "excellent", "good", "fair", "poor"]
         },
@@ -132,6 +135,7 @@
         "measurements",
         "color",
         "material",
+        "origin",
         "condition",
         "flaws",
         "style",
@@ -144,6 +148,7 @@
         "measurements": {"$ref": "#/$defs/confidence"},
         "color": {"$ref": "#/$defs/confidence"},
         "material": {"$ref": "#/$defs/confidence"},
+        "origin": {"$ref": "#/$defs/confidence"},
         "condition": {"$ref": "#/$defs/confidence"},
         "flaws": {"$ref": "#/$defs/confidence"},
         "style": {"$ref": "#/$defs/confidence"},
@@ -162,7 +167,7 @@
       "properties": {
         "field": {"$ref": "#/$defs/attributeName"},
         "value": {"type": "string"},
-        "confidence": {"type": "string"},
+        "confidence": {"$ref": "#/$defs/confidence"},
         "evidence": {"type": "string"},
         "reason": {"type": "string", "minLength": 1}
       }

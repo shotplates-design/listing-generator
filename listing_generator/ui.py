@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import html
 import json
 
 import streamlit as st
@@ -320,7 +321,8 @@ class ListingApp:
             bits.append(f"confidence {level}")
         if message:
             bits.append(message)
-        st.markdown(f'<div class="flag">{" · ".join(bits)}</div>', unsafe_allow_html=True)
+        safe = " · ".join(html.escape(bit, quote=True) for bit in bits)
+        st.markdown(f'<div class="flag">{safe}</div>', unsafe_allow_html=True)
 
     @staticmethod
     def _draft() -> None:

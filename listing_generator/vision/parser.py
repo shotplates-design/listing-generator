@@ -97,7 +97,7 @@ class ExtractionParser:
                 DiscardedReading(
                     field=field_name,
                     value=shown,
-                    confidence="",
+                    confidence="none",
                     evidence="",
                     reason="No confidence was provided.",
                 ),
@@ -191,9 +191,7 @@ class ExtractionParser:
                 text = Text.squash(item)
                 if text and not Text.is_placeholder(text):
                     values[str(key)] = text
-        ruler = ExtractionParser._mentions_ruler(evidence) or (
-            isinstance(raw, dict) and raw.get("approximate") is True
-        )
+        ruler = ExtractionParser._mentions_ruler(evidence)
         if values and ruler and confidence in {"high", "medium"}:
             if isinstance(raw, dict) and raw.get("approximate") is True:
                 return (

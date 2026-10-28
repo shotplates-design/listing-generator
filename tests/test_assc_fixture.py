@@ -42,6 +42,7 @@ def test_recorded_reading_matches_the_hoodie_and_keeps_ruler_measurements():
     assert "100%" in item.material
     assert "cotton" in item.material.lower()
     assert item.origin == "Made in USA"
+    assert "ruler" in HoodieFixture.vision_response()["measurements"]["evidence"].lower()
     assert item.style_era == "Instant Gratification"
     assert item.condition == ""
     assert item.gender_department == ""
@@ -63,6 +64,8 @@ def test_recorded_reading_matches_the_hoodie_and_keeps_ruler_measurements():
         item_id="assc-hoodie",
         created_at="2026-10-28T13:00:00Z",
     )
+    assert document["attributes"]["origin"] == "Made in USA"
+    assert document["field_confidence"]["origin"] == "high"
     assert set(document["listings"]) == set(Platforms.ORDER)
     for listing in document["listings"].values():
         assert len(listing["title"]) <= listing["title_limit"]

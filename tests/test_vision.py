@@ -50,7 +50,27 @@ def test_low_confidence_and_placeholder_and_bare_string_are_dropped():
     assert result.item.brand == ""
     assert result.item.color == ""
     assert result.item.item_type == ""
-    assert any(row.field == "brand" and "confidence" in row.reason.lower() for row in result.discarded)
+    brand = next(row for row in result.discarded if row.field == "brand")
+    assert brand.confidence == "none"
+    assert "confidence" in brand.reason.lower()
+
+
+def test_approximate_flag_without_a_ruler_does_not_keep_measurements():
+    payload = {
+        "measurements": {
+            "value": {"pit_to_pit": "23 in", "length": "27 in"},
+            "confidence": "high",
+            "approximate": True,
+            "evidence": "estimated from how the hoodie looks on the floor",
+        }
+    }
+    result = ExtractionParser.parse(payload, provider="mock", model="mock")
+    assert result.item.measurements == {}
+    assert result.item.field_confidence["measurements"] == "none"
+    dropped = next(row for row in result.discarded if row.field == "measurements")
+    assert "23 in" in dropped.value
+    assert "27 in" in dropped.value
+    assert dropped.confidence == "high"
 
 
 def test_mock_provider_is_what_tests_call():

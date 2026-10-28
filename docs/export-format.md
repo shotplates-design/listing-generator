@@ -43,7 +43,7 @@ Empty strings and `null` amounts mean the fact is unknown. They are not guesses.
 
 | Field | Meaning |
 | --- | --- |
-| `brand`, `category`, `size_tag`, `color`, `material`, `style` | Strings. `category` is the item type (`hoodie`), not the marketplace category. |
+| `brand`, `category`, `size_tag`, `color`, `material`, `origin`, `style` | Strings. `category` is the item type (`hoodie`), not the marketplace category. `origin` is a readable stamp such as `Made in USA`, or `""` when none was read. |
 | `department` | `""`, `mens`, `womens`, `unisex`, `boys`, `girls`, or `kids`. |
 | `condition` | `""`, `new_with_tags`, `new_without_tags`, `excellent`, `good`, `fair`, or `poor`. |
 | `measurements` | Object of strings the seller typed, such as `{"pit_to_pit": "22 in"}`. `{}` when none were provided. |
@@ -121,6 +121,7 @@ Facebook condition labels inside `item_specifics.Condition` and the description:
     "measurements": {},
     "color": "navy",
     "material": "cotton blend",
+    "origin": "Made in USA",
     "condition": "good",
     "flaws": ["Small hole near the left hem"],
     "style": "90s athletic",
@@ -133,6 +134,7 @@ Facebook condition labels inside `item_specifics.Condition` and the description:
     "measurements": "none",
     "color": "high",
     "material": "medium",
+    "origin": "high",
     "condition": "user",
     "flaws": "high",
     "style": "medium",

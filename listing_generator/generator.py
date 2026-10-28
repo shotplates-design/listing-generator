@@ -109,8 +109,10 @@ class ListingGenerator:
                 )
             )
         from listing_generator.polish import ListingPolish
+        from listing_generator.rules import PlatformRules
 
-        return ListingPolish.apply(tuple(drafts))
+        checked = tuple(PlatformRules.enforce(listing) for listing in drafts)
+        return ListingPolish.apply(checked)
 
     @staticmethod
     def _prepare(item: ClothingItem) -> ClothingItem:

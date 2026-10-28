@@ -25,6 +25,7 @@ _TO_EXPORT = {
     "measurements": "measurements",
     "color": "color",
     "material": "material",
+    "origin": "origin",
     "condition": "condition",
     "flaws": "flaws",
     "style_era": "style",
@@ -172,6 +173,7 @@ class ListingExport:
             size_tagged=attributes["size_tag"],
             color=attributes["color"],
             material=attributes["material"],
+            origin=attributes.get("origin") or "",
             condition=attributes["condition"],
             flaws="\n".join(attributes["flaws"]),
             style_era=attributes["style"],
@@ -212,6 +214,7 @@ class ListingExport:
             "measurements": {key: value for key, value in item.measurements.items() if value.strip()},
             "color": item.color,
             "material": item.material,
+            "origin": item.origin,
             "condition": item.condition,
             "flaws": flaws,
             "style": item.style_era,
@@ -246,10 +249,13 @@ class ListingExport:
         field_name = _TO_EXPORT.get(row.field, row.field)
         if field_name not in _FROM_EXPORT:
             raise ExportError(f"Discarded field {row.field!r} is not in the v1 contract.")
+        confidence = str(row.confidence or "").strip().lower()
+        if confidence not in _CONFIDENCE:
+            confidence = "none"
         return {
             "field": field_name,
             "value": row.value,
-            "confidence": row.confidence,
+            "confidence": confidence,
             "evidence": row.evidence,
             "reason": row.reason,
         }

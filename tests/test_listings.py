@@ -80,6 +80,34 @@ def test_polish_reenforces_the_title_limit(monkeypatch, hoodie):
     assert all(len(row.title) <= row.title_limit for row in polished)
 
 
+def test_polish_strips_facebook_hashtags_and_keeps_title_limits(monkeypatch, hoodie):
+    monkeypatch.delenv("LISTING_LLM_POLISH", raising=False)
+    drafts = ListingGenerator.generate(hoodie)
+    monkeypatch.setenv("LISTING_LLM_POLISH", "1")
+
+    def completer(_prompt):
+        payload = {}
+        for row in drafts:
+            if row.platform == "facebook_marketplace":
+                payload[row.platform] = {
+                    "title": "#vintage " + ("Z" * 500),
+                    "description": row.description + "\n#forsale #hoodie",
+                }
+            else:
+                payload[row.platform] = {"title": row.title, "description": row.description}
+        return json_of(payload)
+
+    polished = ListingPolish.apply(tuple(drafts), completer=completer)
+    facebook = next(row for row in polished if row.platform == "facebook_marketplace")
+    depop = next(row for row in polished if row.platform == "depop")
+    assert facebook.polish == "applied"
+    assert "#" not in facebook.title
+    assert "#" not in facebook.description
+    assert 0 < len(facebook.title) <= facebook.title_limit
+    assert all(len(row.title) <= row.title_limit for row in polished)
+    assert "#" in depop.description
+
+
 def json_of(payload) -> str:
     import json
 
