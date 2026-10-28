@@ -8,7 +8,7 @@ from listing_generator.vision.errors import VisionError
 
 
 class ExtractionParser:
-    """Keeps high and medium readings. Measurements stay blank unless a ruler is visible."""
+    """Keeps high and medium readings. Measurements stay blank unless a ruler or tape is marked visible in one photo."""
 
     _FIELDS = (
         "brand",
@@ -191,7 +191,7 @@ class ExtractionParser:
                 text = Text.squash(item)
                 if text and not Text.is_placeholder(text):
                     values[str(key)] = text
-        ruler = ExtractionParser._mentions_ruler(evidence)
+        ruler = ExtractionParser._mentions_ruler(raw)
         if values and ruler and confidence in {"high", "medium"}:
             if isinstance(raw, dict) and raw.get("approximate") is True:
                 return (
@@ -201,21 +201,52 @@ class ExtractionParser:
                     None,
                 )
             return values, confidence, "", None
-        rejected = None
+        refusal = "Measurements cannot be read from photos unless a ruler or tape is visible in a specific photo."
         if shown:
             rejected = DiscardedReading(
                 field="measurements",
                 value=shown,
                 confidence=confidence,
                 evidence=evidence,
-                reason="Measurements cannot be read from photos unless a ruler or tape is visible.",
+                reason=refusal,
             )
-        return {}, "none", blank_flag, rejected
+            return {}, "none", f"Left blank. {refusal}", rejected
+        return {}, "none", blank_flag, None
 
     @staticmethod
-    def _mentions_ruler(evidence: str) -> bool:
-        text = evidence.lower()
-        return any(word in text for word in ("ruler", "tape measure", "measuring tape", "yardstick"))
+    def _mentions_ruler(raw: object) -> bool:
+        """True only when scale names one photo and says a ruler or tape is visible there.
+
+        A sentence that contains the word ruler is not evidence.
+        """
+        if not isinstance(raw, dict):
+            return False
+        scale = raw.get("scale")
+        if not isinstance(scale, dict):
+            return False
+        if ExtractionParser._photo_index(scale.get("photo_index")) is None:
+            return False
+        return ExtractionParser._is_yes(scale.get("visible"))
+
+    @staticmethod
+    def _photo_index(value: object) -> int | None:
+        if isinstance(value, bool):
+            return None
+        if isinstance(value, int):
+            return value if value >= 0 else None
+        if isinstance(value, float) and value.is_integer() and value >= 0:
+            return int(value)
+        if isinstance(value, str) and value.strip().isdigit():
+            return int(value.strip())
+        return None
+
+    @staticmethod
+    def _is_yes(value: object) -> bool:
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, str):
+            return value.strip().lower() in {"yes", "true"}
+        return False
 
     @staticmethod
     def _clean(field_name: str, value: object) -> str:

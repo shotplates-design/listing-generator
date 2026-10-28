@@ -7,6 +7,7 @@ class VisionPrompt:
         return """You read photos of one clothing item for a resale listing. Return one JSON object and nothing else.
 
 Every field is an object: {"value": string or null, "confidence": "high" | "medium" | "low" | "none", "evidence": a short phrase}.
+measurements.value is an object of strings, or null. measurements also includes "scale": {"photo_index": number, "visible": true or false}.
 
 Rules:
 - Use high only when the photo shows the fact clearly.
@@ -18,7 +19,7 @@ Rules:
 - Flaws: describe only wear you can see. If you cannot see a defect, flaws value is null. Never claim the item is unworn or flawless.
 - gender_department only from an explicit printed label such as Men's or Women's. Otherwise null. Allowed values: mens, womens, unisex, boys, girls, kids.
 - style_era only when the look is distinctive. Otherwise null.
-- measurements must be null unless a ruler or tape is visible. Never estimate a measurement from how big the garment looks. When you can read the ruler, set each measurement you can see, such as pit_to_pit "23 in" and length "27 in", and mention the ruler in evidence. Use a range and confidence medium only when the span falls between two marks.
+- measurements must be null unless a ruler, tape measure, measuring tape, or yardstick is visible in one photo. Never estimate a measurement from how big the garment looks. When you can read that tool, set each measurement you can see, such as pit_to_pit "23 in" and length "27 in". Set scale.photo_index to the 0-based index of the photo that shows the tool, and set scale.visible to true. Also mention the ruler or tape in evidence. If no ruler or tape is visible, set value to null and scale.visible to false. Mentioning a ruler only in evidence does not count. Use a range, confidence medium, and "approximate": true only when the span falls between two marks.
 - condition, if set, must be one of: new_with_tags, new_without_tags, excellent, good, fair, poor.
 - origin only from a readable "made in" stamp. Otherwise null.
 - Do not invent a price.

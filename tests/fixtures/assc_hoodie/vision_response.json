@@ -55,6 +55,10 @@
       "length": "27 in"
     },
     "confidence": "high",
-    "evidence": "ruler photo reads 23 in pit to pit and 27 in length"
+    "evidence": "ruler photo reads 23 in pit to pit and 27 in length",
+    "scale": {
+      "photo_index": 5,
+      "visible": true
+    }
   }
 }
