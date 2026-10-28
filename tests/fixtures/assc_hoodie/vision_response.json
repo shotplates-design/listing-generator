@@ -1,0 +1,60 @@
+{
+  "brand": {
+    "value": "Anti Social Social Club",
+    "confidence": "high",
+    "evidence": "back print and neck stamp both read Anti Social Social Club"
+  },
+  "item_type": {
+    "value": "hoodie",
+    "confidence": "high",
+    "evidence": "hood, drawstrings, kangaroo pocket, and ribbed cuffs"
+  },
+  "size_tagged": {
+    "value": "L",
+    "confidence": "high",
+    "evidence": "size stamp reads L"
+  },
+  "color": {
+    "value": "blue",
+    "confidence": "high",
+    "evidence": "garment color in the front and back photos"
+  },
+  "material": {
+    "value": "100% cotton",
+    "confidence": "high",
+    "evidence": "neck stamp reads 100% COTTON"
+  },
+  "origin": {
+    "value": "Made in USA",
+    "confidence": "high",
+    "evidence": "neck stamp reads MADE IN U.S.A."
+  },
+  "condition": {
+    "value": null,
+    "confidence": "none",
+    "evidence": "no wear grade is printed and no defect is clear"
+  },
+  "flaws": {
+    "value": null,
+    "confidence": "none",
+    "evidence": "no flaw is clear in these photos"
+  },
+  "style_era": {
+    "value": "Instant Gratification",
+    "confidence": "high",
+    "evidence": "front graphic reads Instant Gratification"
+  },
+  "gender_department": {
+    "value": null,
+    "confidence": "none",
+    "evidence": "the stamp does not name a department"
+  },
+  "measurements": {
+    "value": {
+      "pit_to_pit": "23 in",
+      "length": "27 in"
+    },
+    "confidence": "high",
+    "evidence": "ruler photo reads 23 in pit to pit and 27 in length"
+  }
+}

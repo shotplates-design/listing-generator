@@ -1,0 +1,124 @@
+# US seller fee rates for the draft calculator.
+# Checked 2026-10-28 against the public fee pages linked below.
+# This file is the only place rates live. Edit the numbers when a platform changes them.
+# The calculator does not include store subscriptions, Top Rated discounts, promoted
+# listings, Depop Boost, instant-payout fees, or state seller-fee taxes.
+
+as_of: "2026-10-28"
+currency: USD
+
+sources:
+  ebay: "https://www.ebay.com/help/selling/fees-credits-invoices/selling-fees?id=4822"
+  poshmark: "https://support.poshmark.com/s/article/297755057"
+  depop: "https://depophelp.zendesk.com/hc/en-gb/articles/360001791127-Seller-fees-and-charges"
+  mercari: "https://www.mercari.com/us/help_center/article/169/"
+  whatnot: "https://www.whatnot.com/seller/fees"
+  facebook_marketplace: "verify in Facebook checkout; local pickup is $0 and the shipped rate below is flagged"
+
+# Title caps. eBay, Poshmark, and Mercari are platform limits.
+# Depop has no separate title; 80 is this app's cap for the opening line.
+# Whatnot's 40 is this app's show-card cap so the title fits a live tile.
+title_limits:
+  ebay: 80
+  poshmark: 80
+  mercari: 80
+  depop: 80
+  whatnot: 40
+  facebook_marketplace: 100
+
+# Description caps. Depop, Poshmark, and Mercari match the platform.
+# eBay and Whatnot are app caps so a draft stays postable.
+description_limits:
+  ebay: 4000
+  poshmark: 1500
+  depop: 1000
+  mercari: 1000
+  whatnot: 1000
+  facebook_marketplace: 5000
+
+depop_hashtag_limit: 5
+poshmark_style_tag_limit: 3
+mercari_keyword_limit: 5
+
+# Used only when the seller enters a cost basis and a condition, and no target price.
+# Suggested ask = cost × markup, rounded half-up to the nearest dollar.
+# This is not a sold comp.
+cost_basis_markup:
+  new_with_tags: "2.20"
+  new_without_tags: "1.90"
+  excellent: "1.60"
+  good: "1.35"
+  fair: "1.15"
+  poor: "1.00"
+
+platforms:
+  ebay:
+    display_name: eBay
+    # No-store clothing rate. 13.6% on the fee base up to the threshold,
+    # then 2.35% only on the portion above it, plus a per-order fee.
+    # Fee base is item + buyer-paid shipping + sales tax.
+    # Athletic shoes at or above the threshold are 8% with no per-order fee.
+    # Handbags use a single rate on the whole fee base.
+    clothing_percent: "0.136"
+    clothing_percent_above: "0.0235"
+    clothing_threshold: "7500"
+    per_order_up_to_10: "0.30"
+    per_order_above_10: "0.40"
+    per_order_threshold: "10"
+    athletic_shoes_percent: "0.08"
+    athletic_shoes_threshold: "150"
+    handbag_percent: "0.15"
+    handbag_percent_above: "0.09"
+    handbag_threshold: "2000"
+    keywords:
+      athletic_shoes:
+        - athletic shoe
+        - sneaker
+        - sneakers
+        - trainer
+        - running shoe
+        - tennis shoe
+      handbags:
+        - handbag
+        - purse
+        - shoulder bag
+
+  poshmark:
+    display_name: Poshmark
+    # Under $15 flat. $15 and above, 20% of the item price. Shipping is not included.
+    flat_below: "15"
+    flat_fee: "2.95"
+    percent: "0.20"
+
+  depop:
+    display_name: Depop
+    # US selling fee is $0. Processing is 3.3% + $0.45 on item + shipping + tax.
+    # Boosted listings (12% as of March 2026) are not included.
+    selling_percent: "0"
+    processing_percent: "0.033"
+    processing_fixed: "0.45"
+
+  mercari:
+    display_name: Mercari
+    # 10% of item + buyer-paid shipping. No separate processing fee.
+    percent: "0.10"
+
+  whatnot:
+    display_name: Whatnot
+    # Default commission is 8% of the item price only.
+    # Processing is 2.9% of item + shipping + tax, plus $0.30.
+    # Some categories and volume tiers are lower (as low as 3%). This file uses 8%.
+    commission_percent: "0.08"
+    processing_percent: "0.029"
+    processing_fixed: "0.30"
+
+  facebook_marketplace:
+    display_name: Facebook Marketplace
+    # Local pickup and off-platform payment: no selling fee.
+    # Shipped Facebook checkout: public 2026 writeups disagree (often 5%, or 10%
+    # with a minimum around $0.80). These shipped numbers are a placeholder.
+    # The calculator always repeats verify_note next to the fee. Confirm them
+    # in Facebook checkout, then edit shipped_percent and shipped_minimum.
+    shipped_percent: "0.10"
+    shipped_minimum: "0.80"
+    verify_note: "Verify this shipped selling fee before you rely on it. Published 2026 figures disagree, often 5% versus 10% with a minimum. Local pickup stays $0. Edit shipped_percent and shipped_minimum in this file after you confirm the current Facebook checkout rate."
