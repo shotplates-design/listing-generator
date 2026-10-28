@@ -13,7 +13,7 @@ from listing_generator.vision.prompt import VisionPrompt
 
 
 class GeminiVisionProvider(VisionProvider):
-    DEFAULT_MODEL = "gemini-2.5-flash"
+    DEFAULT_MODEL = "gemini-3.5-flash"
     DEFAULT_BASE = "https://generativelanguage.googleapis.com/v1beta"
 
     def __init__(self, api_key: str, model: str | None = None, base_url: str | None = None) -> None:

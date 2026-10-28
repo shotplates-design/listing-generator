@@ -217,7 +217,7 @@ def test_mock_provider_is_what_tests_call():
 
 def test_gemini_request_keeps_the_key_out_of_the_url_and_body():
     image = ImagePrep.prepare("tag.jpg", _png())
-    provider = GeminiVisionProvider(api_key="super-secret-key", model="gemini-2.5-flash")
+    provider = GeminiVisionProvider(api_key="super-secret-key", model="gemini-3.5-flash")
     url, headers, payload = provider.build_request([image])
     assert "super-secret-key" not in url
     assert "key=" not in url
