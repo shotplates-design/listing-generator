@@ -64,7 +64,7 @@ Set `VISION_PROVIDER=openai` to use an OpenAI-compatible chat endpoint (`OPENAI_
 
 ## What the reading will not invent
 
-- Measurements, unless a ruler or tape is visible. A ruler photo can fill pit to pit and length with the inches it shows. A garment with no scale stays blank.
+- Measurements, unless the reading marks a ruler or tape visible in a specific photo. Mentioning a ruler in the notes does not count. A marked ruler photo can fill pit to pit and length with the inches it shows. Anything else stays blank and is flagged.
 - Brand, size, or material when the tag is not readable.
 - A condition grade when the photos do not support one.
 - A price. Enter a target asking price, or a cost basis plus a condition. A cost-basis price is `cost × markup` from `config/fees.yaml`, rounded to the nearest dollar. It is not a sold comp.

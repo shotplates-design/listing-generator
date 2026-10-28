@@ -55,6 +55,105 @@ def test_low_confidence_and_placeholder_and_bare_string_are_dropped():
     assert "confidence" in brand.reason.lower()
 
 
+def test_text_only_ruler_claim_drops_measurements():
+    payload = {
+        "measurements": {
+            "value": {"pit_to_pit": "23 in", "length": "27 in"},
+            "confidence": "high",
+            "evidence": "a ruler, tape measure, measuring tape, and yardstick are visible; photo_index 1 visible yes",
+        }
+    }
+    result = ExtractionParser.parse(payload, provider="mock", model="mock")
+    assert result.item.measurements == {}
+    assert result.item.field_confidence["measurements"] == "none"
+    flag = result.item.field_flags["measurements"].lower()
+    assert "cannot be read from photos" in flag
+    assert "ruler" in flag
+    assert "photo" in flag
+    dropped = next(row for row in result.discarded if row.field == "measurements")
+    assert "23 in" in dropped.value
+    assert "27 in" in dropped.value
+    assert "photo" in dropped.reason.lower()
+
+
+def test_structured_visible_ruler_keeps_measurements():
+    claims = (
+        {"photo_index": 2, "visible": True},
+        {"photo_index": "2", "visible": "yes"},
+    )
+    for scale in claims:
+        payload = {
+            "measurements": {
+                "value": {"pit_to_pit": "23 in", "length": "27 in"},
+                "confidence": "high",
+                "evidence": "the second photo shows the marks across the chest and the hem",
+                "scale": scale,
+            }
+        }
+        result = ExtractionParser.parse(payload, provider="mock", model="mock")
+        assert result.item.measurements == {"pit_to_pit": "23 in", "length": "27 in"}
+        assert result.item.field_confidence["measurements"] == "high"
+        assert "measurements" not in result.item.field_flags
+        assert not any(row.field == "measurements" for row in result.discarded)
+        blob = " ".join(DescriptionBuilder.build(result.item, platform) for platform in Platforms.ORDER)
+        assert "Pit to pit: 23 in" in blob
+        assert "Length: 27 in" in blob
+
+
+def test_measurements_without_a_ruler_are_dropped():
+    payloads = [
+        {
+            "measurements": {
+                "value": {"pit_to_pit": "23 in", "length": "27 in"},
+                "confidence": "high",
+                "evidence": "estimated from how the hoodie looks on the floor",
+            }
+        },
+        {
+            "measurements": {
+                "value": {"pit_to_pit": "23 in", "length": "27 in"},
+                "confidence": "high",
+                "evidence": "flat lay",
+                "scale": {"photo_index": 1, "visible": False},
+            }
+        },
+        {
+            "measurements": {
+                "value": {"pit_to_pit": "23 in", "length": "27 in"},
+                "confidence": "high",
+                "evidence": "flat lay",
+                "scale": {"photo_index": 1, "visible": "no"},
+            }
+        },
+        {
+            "measurements": {
+                "value": {"pit_to_pit": "23 in"},
+                "confidence": "high",
+                "evidence": "flat lay",
+                "scale": {"visible": True},
+            }
+        },
+        {
+            "measurements": {
+                "value": {"pit_to_pit": "23 in"},
+                "confidence": "high",
+                "evidence": "flat lay",
+                "scale": {"photo_index": True, "visible": True},
+            }
+        },
+    ]
+    for payload in payloads:
+        result = ExtractionParser.parse(payload, provider="mock", model="mock")
+        assert result.item.measurements == {}
+        assert result.item.field_confidence["measurements"] == "none"
+        flag = result.item.field_flags["measurements"].lower()
+        assert "cannot be read from photos" in flag
+        assert "ruler" in flag
+        dropped = next(row for row in result.discarded if row.field == "measurements")
+        assert "23 in" in dropped.value
+        assert "photo" in dropped.reason.lower()
+
+
 def test_approximate_flag_without_a_ruler_does_not_keep_measurements():
     payload = {
         "measurements": {
